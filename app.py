@@ -24,7 +24,7 @@ def index():
 @app.route("/fetch-data")
 def fetch_data():
     series_id = request.args.get("series_id")
-    start = request.args.get("start", "2020-01-01")
+    start = request.args.get("start", "2000-01-01")
     end = request.args.get("end", "2099-01-01")
     url = "https://api.stlouisfed.org/fred/series/observations"
     params = {

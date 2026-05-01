@@ -89,7 +89,7 @@
         // Set default date range (last 2 years)
         const today = new Date();
         const twoYearsAgo = new Date();
-        twoYearsAgo.setFullYear(today.getFullYear() - 2);
+        twoYearsAgo.setFullYear(today.getFullYear() - 25);
         document.getElementById("endDate").value = today.toISOString().split("T")[0];
         document.getElementById("startDate").value = twoYearsAgo.toISOString().split("T")[0];
 
