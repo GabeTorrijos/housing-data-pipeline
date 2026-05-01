@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Housing Data Pipeline</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            padding: 40px;
+        }
+        h1 { color: #4fc3f7; }
+        select, button, input {
+            padding: 10px;
+            margin: 10px 5px;
+            border-radius: 6px;
+            border: none;
+            font-size: 16px;
+        }
+        select, input { background: #2e2e2e; color: white; }
+        input { width: 140px; }
+        button {
+            background-color: #4fc3f7;
+            color: #1e1e1e;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { background-color: #81d4fa; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th {
+            background-color: #2e2e2e;
+            padding: 12px;
+            text-align: left;
+            color: #4fc3f7;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #333;
+        }
+        tr:hover { background-color: #2a2a2a; }
+        #status { margin-top: 10px; color: #aaaaaa; }
+        #chartContainer {
+            margin-top: 30px;
+            background: #2e2e2e;
+            border-radius: 10px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏠 Housing Data Pipeline</h1>
+    <p>Pull real housing data from the Federal Reserve (FRED)</p>
+
+    <div>
+        <select id="seriesSelect"></select>
+        <input type="date" id="startDate" />
+        <input type="date" id="endDate" />
+        <button onclick="fetchData()">Fetch Data</button>
+        <button onclick="downloadCSV()">Download CSV</button>
+    </div>
+
+    <p id="status"></p>
+
+    <div id="chartContainer">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <script>
+        let currentData = [];
+        let myChart = null;
+
+        // Set default date range (last 2 years)
+        const today = new Date();
+        const twoYearsAgo = new Date();
+        twoYearsAgo.setFullYear(today.getFullYear() - 2);
+        document.getElementById("endDate").value = today.toISOString().split("T")[0];
+        document.getElementById("startDate").value = twoYearsAgo.toISOString().split("T")[0];
+
+        async function loadSeries() {
+            const res = await fetch("/get-series");
+            const series = await res.json();
+            const select = document.getElementById("seriesSelect");
+            for (const [name, id] of Object.entries(series)) {
+                const option = document.createElement("option");
+                option.value = id;
+                option.text = name;
+                select.appendChild(option);
+            }
+        }
+
+        async function fetchData() {
+            const seriesId = document.getElementById("seriesSelect").value;
+            const startDate = document.getElementById("startDate").value;
+            const endDate = document.getElementById("endDate").value;
+            document.getElementById("status").textContent = "Fetching data...";
+            const res = await fetch(`/fetch-data?series_id=${seriesId}&start=${startDate}&end=${endDate}`);
+            currentData = await res.json();
+
+            const tbody = document.getElementById("tableBody");
+            tbody.innerHTML = "";
+            currentData.forEach(row => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${row.date}</td><td>${row.value}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById("status").textContent = `Loaded ${currentData.length} records.`;
+            renderChart();
+        }
+
+        function renderChart() {
+            const labels = currentData.map(r => r.date).reverse();
+            const values = currentData.map(r => parseFloat(r.value)).reverse();
+
+            if (myChart) myChart.destroy();
+
+            const ctx = document.getElementById("myChart").getContext("2d");
+            myChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: document.getElementById("seriesSelect").selectedOptions[0].text,
+                        data: values,
+                        borderColor: "#4fc3f7",
+                        backgroundColor: "rgba(79, 195, 247, 0.1)",
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: "#ffffff" } }
+                    },
+                    scales: {
+                        x: { ticks: { color: "#aaaaaa" }, grid: { color: "#333" } },
+                        y: { ticks: { color: "#aaaaaa" }, grid: { color: "#333" } }
+                    }
+                }
+            });
+        }
+
+        function downloadCSV() {
+            if (currentData.length === 0) {
+                alert("Please fetch data first!");
+                return;
+            }
+            const csv = "Date,Value\n" + currentData.map(r => `${r.date},${r.value}`).join("\n");
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "housing_data.csv";
+            a.click();
+        }
+
+        loadSeries();
+    </script>
+</body>
+</html>
