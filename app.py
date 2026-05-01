@@ -44,5 +44,26 @@ def fetch_data():
 def get_series():
     return jsonify(SERIES)
 
+@app.route("/api/all-data")
+def get_all_data():
+    all_data = {}
+    for label, series_id in SERIES.items():
+        url = "https://api.stlouisfed.org/fred/series/observations"
+        params = {
+            "series_id": series_id,
+            "api_key": FRED_API_KEY,
+            "file_type": "json",
+            "observation_start": "2000-01-01"
+        }
+        response = requests.get(url, params=params)
+        data = response.json()
+        observations = data.get("observations", [])
+        all_data[label] = [
+            {"date": o["date"], "value": o["value"]}
+            for o in observations
+            if o["value"] != "."
+        ]
+    return jsonify(all_data)
+
 if __name__ == "__main__":
     app.run(debug=True)
