@@ -6,87 +6,107 @@
     <title>Housing Data Pipeline</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #1e1e1e;
-            color: #ffffff;
-            padding: 40px;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, 'Segoe UI', sans-serif; background: #0f1117; color: #e0e0e0; line-height: 1.5; }
+        header { background: linear-gradient(135deg, #1a1d2e 0%, #1e2438 100%); padding: 32px 40px; border-bottom: 2px solid #2a2d3e; }
+        header h1 { font-size: 1.9rem; color: #60a5fa; font-weight: 700; letter-spacing: -0.02em; }
+        header p { color: #9ca3af; margin-top: 6px; font-size: 0.95rem; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+        .card { background: #1a1d2e; border-radius: 14px; padding: 28px; margin-bottom: 24px; border: 1px solid #2a2d3e; }
+        .section-title { font-size: 1.15rem; font-weight: 600; color: #60a5fa; margin-bottom: 18px; }
+        .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+        select, input {
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #2a2d3e;
+            background: #0f1117;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+            font-family: inherit;
         }
-        h1 { color: #4fc3f7; }
-        select, button, input {
-            padding: 10px;
-            margin: 10px 5px;
-            border-radius: 6px;
-            border: none;
-            font-size: 16px;
-        }
-        select, input { background: #2e2e2e; color: white; }
-        input { width: 140px; }
+        input[type="date"] { width: 150px; }
+        select:focus, input:focus { outline: none; border-color: #60a5fa; }
         button {
-            background-color: #4fc3f7;
-            color: #1e1e1e;
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: inherit;
             cursor: pointer;
-            font-weight: bold;
+            background-color: #60a5fa;
+            color: #0f1117;
+            transition: background-color 0.15s ease;
         }
-        button:hover { background-color: #81d4fa; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
+        button:hover { background-color: #7db8fb; }
+        button.secondary { background-color: transparent; color: #60a5fa; border: 1px solid #2a2d3e; }
+        button.secondary:hover { background-color: #232739; }
+        #status { margin-top: 14px; color: #9ca3af; font-size: 0.85rem; min-height: 1.2em; }
+        .chart-wrapper { position: relative; height: 320px; margin-top: 8px; }
+        table { width: 100%; border-collapse: collapse; }
         th {
-            background-color: #2e2e2e;
-            padding: 12px;
+            background-color: #0f1117;
+            padding: 12px 14px;
             text-align: left;
-            color: #4fc3f7;
+            color: #9ca3af;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom: 1px solid #2a2d3e;
         }
-        td {
-            padding: 10px;
-            border-bottom: 1px solid #333;
-        }
-        tr:hover { background-color: #2a2a2a; }
-        #status { margin-top: 10px; color: #aaaaaa; }
-        #chartContainer {
-            margin-top: 30px;
-            background: #2e2e2e;
-            border-radius: 10px;
-            padding: 20px;
-        }
+        td { padding: 10px 14px; border-bottom: 1px solid #232739; font-size: 0.9rem; }
+        tr:hover td { background-color: #1e2233; }
+        .table-wrapper { max-height: 420px; overflow-y: auto; border-radius: 10px; border: 1px solid #2a2d3e; }
     </style>
 </head>
 <body>
-    <h1>🏠 Housing Data Pipeline</h1>
-    <p>Pull real housing data from the Federal Reserve (FRED)</p>
+    <header>
+        <h1>Housing Data Pipeline</h1>
+        <p>Real-time housing and mortgage data sourced from the Federal Reserve (FRED)</p>
+    </header>
 
-    <div>
-        <select id="seriesSelect"></select>
-        <input type="date" id="startDate" />
-        <input type="date" id="endDate" />
-        <button onclick="fetchData()">Fetch Data</button>
-        <button onclick="downloadCSV()">Download CSV</button>
+    <div class="container">
+        <div class="card">
+            <div class="section-title">Query Data</div>
+            <div class="controls">
+                <select id="seriesSelect"></select>
+                <input type="date" id="startDate" />
+                <input type="date" id="endDate" />
+                <button onclick="fetchData()">Fetch Data</button>
+                <button class="secondary" onclick="downloadCSV()">Download CSV</button>
+            </div>
+            <p id="status"></p>
+        </div>
+
+        <div class="card">
+            <div class="section-title">Trend Chart</div>
+            <div class="chart-wrapper">
+                <canvas id="myChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">Data Table</div>
+            <div class="table-wrapper">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
-
-    <p id="status"></p>
-
-    <div id="chartContainer">
-        <canvas id="myChart"></canvas>
-    </div>
-
-    <table id="dataTable">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Value</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
 
     <script>
         let currentData = [];
         let myChart = null;
 
-        // Set default date range (last 2 years)
+        // Set default date range (last 25 years)
         const today = new Date();
         const twoYearsAgo = new Date();
         twoYearsAgo.setFullYear(today.getFullYear() - 25);
@@ -139,22 +159,23 @@
                     datasets: [{
                         label: document.getElementById("seriesSelect").selectedOptions[0].text,
                         data: values,
-                        borderColor: "#4fc3f7",
-                        backgroundColor: "rgba(79, 195, 247, 0.1)",
+                        borderColor: "#60a5fa",
+                        backgroundColor: "rgba(96, 165, 250, 0.1)",
                         borderWidth: 2,
-                        pointRadius: 3,
+                        pointRadius: 0,
                         fill: true,
                         tension: 0.3
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
-                        legend: { labels: { color: "#ffffff" } }
+                        legend: { labels: { color: "#e0e0e0" } }
                     },
                     scales: {
-                        x: { ticks: { color: "#aaaaaa" }, grid: { color: "#333" } },
-                        y: { ticks: { color: "#aaaaaa" }, grid: { color: "#333" } }
+                        x: { ticks: { color: "#9ca3af" }, grid: { color: "#2a2d3e" } },
+                        y: { ticks: { color: "#9ca3af" }, grid: { color: "#2a2d3e" } }
                     }
                 }
             });
@@ -162,7 +183,7 @@
 
         function downloadCSV() {
             if (currentData.length === 0) {
-                alert("Please fetch data first!");
+                alert("Please fetch data first.");
                 return;
             }
             const csv = "Date,Value\n" + currentData.map(r => `${r.date},${r.value}`).join("\n");
