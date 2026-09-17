@@ -4,90 +4,160 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Housing Data Pipeline</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --page: #0d0d0d;
+            --surface: #161615;
+            --surface-2: #1c1c1b;
+            --border: rgba(255,255,255,0.09);
+            --border-strong: rgba(255,255,255,0.16);
+            --text-primary: #f2f2f0;
+            --text-secondary: #c3c2b7;
+            --text-muted: #82817a;
+            --gridline: #2c2c2a;
+            --accent: #3987e5;
+            --accent-hover: #4f97ea;
+            --success: #2fae63;
+            --radius-card: 10px;
+            --radius-control: 6px;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, 'Segoe UI', sans-serif; background: #0f1117; color: #e0e0e0; line-height: 1.5; }
-        header { background: linear-gradient(135deg, #1a1d2e 0%, #1e2438 100%); padding: 32px 40px; border-bottom: 2px solid #2a2d3e; }
-        header h1 { font-size: 1.9rem; color: #60a5fa; font-weight: 700; letter-spacing: -0.02em; }
-        header p { color: #9ca3af; margin-top: 6px; font-size: 0.95rem; }
-        .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
-        .card { background: #1a1d2e; border-radius: 14px; padding: 28px; margin-bottom: 24px; border: 1px solid #2a2d3e; }
-        .section-title { font-size: 1.15rem; font-weight: 600; color: #60a5fa; margin-bottom: 18px; }
-        .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+        body {
+            font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+            background: var(--page);
+            color: var(--text-secondary);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+        header {
+            background: var(--page);
+            border-bottom: 1px solid var(--border);
+            padding: 22px 32px;
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        header h1 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+        header p {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px 32px 64px; }
+        .eyebrow {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius-card);
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
         select, input {
-            padding: 10px 12px;
-            border-radius: 8px;
-            border: 1px solid #2a2d3e;
-            background: #0f1117;
-            color: #e0e0e0;
-            font-size: 0.9rem;
+            padding: 9px 12px;
+            border-radius: var(--radius-control);
+            border: 1px solid var(--border-strong);
+            background: var(--page);
+            color: var(--text-primary);
+            font-size: 0.85rem;
             font-family: inherit;
         }
-        input[type="date"] { width: 150px; }
-        select:focus, input:focus { outline: none; border-color: #60a5fa; }
+        input[type="date"] { width: 148px; color-scheme: dark; }
+        select:focus, input:focus { outline: none; border-color: var(--accent); }
         button {
-            padding: 10px 18px;
-            border-radius: 8px;
-            border: none;
-            font-size: 0.9rem;
+            padding: 9px 16px;
+            border-radius: var(--radius-control);
+            border: 1px solid transparent;
+            font-size: 0.85rem;
             font-weight: 600;
             font-family: inherit;
             cursor: pointer;
-            background-color: #60a5fa;
-            color: #0f1117;
-            transition: background-color 0.15s ease;
+            transition: background-color 0.15s ease, border-color 0.15s ease;
         }
-        button:hover { background-color: #7db8fb; }
-        button.secondary { background-color: transparent; color: #60a5fa; border: 1px solid #2a2d3e; }
-        button.secondary:hover { background-color: #232739; }
-        #status { margin-top: 14px; color: #9ca3af; font-size: 0.85rem; min-height: 1.2em; }
-        .chart-wrapper { position: relative; height: 320px; margin-top: 8px; }
+        button.primary { background-color: var(--accent); color: #ffffff; }
+        button.primary:hover { background-color: var(--accent-hover); }
+        button.secondary { background-color: transparent; color: var(--text-secondary); border-color: var(--border-strong); }
+        button.secondary:hover { background-color: var(--surface-2); color: var(--text-primary); }
+        #status { margin-top: 14px; color: var(--text-muted); font-size: 0.78rem; min-height: 1.2em; }
+
+        .chart-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 4px; }
+        .chart-name { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
+        .stat-row { display: flex; gap: 20px; }
+        .stat { font-size: 0.78rem; color: var(--text-muted); }
+        .stat strong { display: block; font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-top: 2px; }
+        .chart-wrapper { position: relative; height: 300px; margin-top: 20px; }
+
         table { width: 100%; border-collapse: collapse; }
         th {
-            background-color: #0f1117;
-            padding: 12px 14px;
+            background-color: var(--surface);
+            position: sticky;
+            top: 0;
+            padding: 10px 14px;
             text-align: left;
-            color: #9ca3af;
-            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-size: 0.7rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
-            border-bottom: 1px solid #2a2d3e;
+            letter-spacing: 0.06em;
+            border-bottom: 1px solid var(--border);
         }
-        td { padding: 10px 14px; border-bottom: 1px solid #232739; font-size: 0.9rem; }
-        tr:hover td { background-color: #1e2233; }
-        .table-wrapper { max-height: 420px; overflow-y: auto; border-radius: 10px; border: 1px solid #2a2d3e; }
+        td { padding: 9px 14px; border-bottom: 1px solid var(--border); font-size: 0.85rem; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: var(--surface-2); color: var(--text-primary); }
+        .table-wrapper { max-height: 420px; overflow-y: auto; border-radius: var(--radius-control); border: 1px solid var(--border); }
     </style>
 </head>
 <body>
     <header>
         <h1>Housing Data Pipeline</h1>
-        <p>Real-time housing and mortgage data sourced from the Federal Reserve (FRED)</p>
+        <p>Real-time housing and mortgage data &middot; Federal Reserve (FRED)</p>
     </header>
 
     <div class="container">
         <div class="card">
-            <div class="section-title">Query Data</div>
+            <div class="eyebrow">Query</div>
             <div class="controls">
                 <select id="seriesSelect"></select>
                 <input type="date" id="startDate" />
                 <input type="date" id="endDate" />
-                <button onclick="fetchData()">Fetch Data</button>
+                <button class="primary" onclick="fetchData()">Fetch data</button>
                 <button class="secondary" onclick="downloadCSV()">Download CSV</button>
             </div>
             <p id="status"></p>
         </div>
 
         <div class="card">
-            <div class="section-title">Trend Chart</div>
+            <div class="chart-header">
+                <div>
+                    <div class="eyebrow">Trend</div>
+                    <div class="chart-name" id="chartName">&mdash;</div>
+                </div>
+                <div class="stat-row" id="statRow"></div>
+            </div>
             <div class="chart-wrapper">
                 <canvas id="myChart"></canvas>
             </div>
         </div>
 
         <div class="card">
-            <div class="section-title">Data Table</div>
+            <div class="eyebrow">Records</div>
             <div class="table-wrapper">
                 <table id="dataTable">
                     <thead>
@@ -103,15 +173,16 @@
     </div>
 
     <script>
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
         let currentData = [];
         let myChart = null;
 
-        // Set default date range (last 25 years)
         const today = new Date();
-        const twoYearsAgo = new Date();
-        twoYearsAgo.setFullYear(today.getFullYear() - 25);
+        const startDefault = new Date();
+        startDefault.setFullYear(today.getFullYear() - 25);
         document.getElementById("endDate").value = today.toISOString().split("T")[0];
-        document.getElementById("startDate").value = twoYearsAgo.toISOString().split("T")[0];
+        document.getElementById("startDate").value = startDefault.toISOString().split("T")[0];
 
         async function loadSeries() {
             const res = await fetch("/get-series");
@@ -126,10 +197,13 @@
         }
 
         async function fetchData() {
-            const seriesId = document.getElementById("seriesSelect").value;
+            const seriesSelect = document.getElementById("seriesSelect");
+            const seriesId = seriesSelect.value;
+            const seriesName = seriesSelect.selectedOptions[0].text;
             const startDate = document.getElementById("startDate").value;
             const endDate = document.getElementById("endDate").value;
             document.getElementById("status").textContent = "Fetching data...";
+
             const res = await fetch(`/fetch-data?series_id=${seriesId}&start=${startDate}&end=${endDate}`);
             currentData = await res.json();
 
@@ -141,11 +215,38 @@
                 tbody.appendChild(tr);
             });
 
-            document.getElementById("status").textContent = `Loaded ${currentData.length} records.`;
-            renderChart();
+            document.getElementById("status").textContent = `${currentData.length} records loaded`;
+            document.getElementById("chartName").textContent = seriesName;
+            renderStats();
+            renderChart(seriesName);
         }
 
-        function renderChart() {
+        function renderStats() {
+            const statRow = document.getElementById("statRow");
+            statRow.innerHTML = "";
+            if (currentData.length === 0) return;
+
+            const chronological = [...currentData].reverse();
+            const latest = parseFloat(chronological[chronological.length - 1].value);
+            const earliest = parseFloat(chronological[0].value);
+            const change = (((latest - earliest) / earliest) * 100).toFixed(1);
+            const changeColor = change >= 0 ? "var(--success)" : "#e0645a";
+
+            const stats = [
+                { label: "Latest", value: latest.toLocaleString(undefined, { maximumFractionDigits: 2 }) },
+                { label: chronological[0].date.slice(0, 4), value: earliest.toLocaleString(undefined, { maximumFractionDigits: 2 }) },
+                { label: "Change", value: `${change >= 0 ? "+" : ""}${change}%`, color: changeColor }
+            ];
+
+            stats.forEach(s => {
+                const div = document.createElement("div");
+                div.className = "stat";
+                div.innerHTML = `${s.label}<strong style="${s.color ? `color:${s.color}` : ""}">${s.value}</strong>`;
+                statRow.appendChild(div);
+            });
+        }
+
+        function renderChart(seriesName) {
             const labels = currentData.map(r => r.date).reverse();
             const values = currentData.map(r => parseFloat(r.value)).reverse();
 
@@ -157,25 +258,38 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: document.getElementById("seriesSelect").selectedOptions[0].text,
+                        label: seriesName,
                         data: values,
-                        borderColor: "#60a5fa",
-                        backgroundColor: "rgba(96, 165, 250, 0.1)",
+                        borderColor: "#3987e5",
+                        backgroundColor: "rgba(57, 135, 229, 0.1)",
                         borderWidth: 2,
-                        pointRadius: 0,
+                        pointRadius: ctx => ctx.dataIndex === values.length - 1 ? 4 : 0,
+                        pointBackgroundColor: "#3987e5",
+                        pointBorderColor: "#161615",
+                        pointBorderWidth: 2,
                         fill: true,
-                        tension: 0.3
+                        tension: 0.25
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: { mode: "index", intersect: false },
                     plugins: {
-                        legend: { labels: { color: "#e0e0e0" } }
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: "#1c1c1b",
+                            borderColor: "#2c2c2a",
+                            borderWidth: 1,
+                            titleColor: "#f2f2f0",
+                            bodyColor: "#c3c2b7",
+                            padding: 10,
+                            displayColors: false
+                        }
                     },
                     scales: {
-                        x: { ticks: { color: "#9ca3af" }, grid: { color: "#2a2d3e" } },
-                        y: { ticks: { color: "#9ca3af" }, grid: { color: "#2a2d3e" } }
+                        x: { ticks: { color: "#82817a", maxTicksLimit: 8, font: { size: 11 } }, grid: { color: "#2c2c2a" } },
+                        y: { ticks: { color: "#82817a", font: { size: 11 } }, grid: { color: "#2c2c2a" } }
                     }
                 }
             });
